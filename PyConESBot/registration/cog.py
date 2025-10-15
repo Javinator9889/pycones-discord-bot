@@ -28,7 +28,7 @@ class RegistrationButton(discord.ui.Button["Registration"]):
         await interaction.response.send_modal(RegistrationForm(parent_cog=self.parent_cog))
 
 
-class RegistrationForm(discord.ui.Modal, title="PyConES 2024 Registration"):
+class RegistrationForm(discord.ui.Modal, title="PyConES 2025 Registration"):
     def __init__(self, parent_cog: RegistrationCog):
         super().__init__()
         self.parent_cog = parent_cog
@@ -97,8 +97,8 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2024 Registration"):
 
         await self.log_registration_to_channel(interaction, name=name, order=order, roles=roles)
         await self.log_registration_to_user(interaction, name=name)
-        for ticket in tickets:
-            await self.parent_cog.registration_logger.mark_as_registered(ticket)
+        # if the user has multiple tickets, we only log the first one
+        await self.parent_cog.registration_logger.mark_as_registered(tickets[0])
         _logger.info(f"Registration successful: {order=}, {name=}")
 
     async def on_error(self, interaction: Interaction, error: Exception) -> None:
@@ -179,7 +179,7 @@ class RegistrationCog(commands.Cog):
         welcome_message = create_welcome_message(
             textwrap.dedent(
                 f"""
-                Sigue estos pasos para registrarte en el servidor de la PyConES 2024:
+                Sigue estos pasos para registrarte en el servidor de la PyConES 2025:
 
                 1️⃣ Haz clic en el botón que dice "Regístrate aquí 👈", justo debajo.
 
@@ -197,7 +197,7 @@ class RegistrationCog(commands.Cog):
                 * El canal <#{config.REG_HELP_CHANNEL_ID}>
                 * Hablando con algún voluntario que esté en el evento
 
-                ¡Disfruta el servidor de la comunidad PyConES 2024! 🐍💻🎉
+                ¡Disfruta el servidor de la comunidad PyConES 2025! 🐍💻🎉
                 """
             )
         )
@@ -237,7 +237,7 @@ class RegistrationCog(commands.Cog):
 def create_welcome_message(body: str) -> discord.Embed:
     orange = 0xFF8331
     return discord.Embed(
-        title="¡Bienvenido a la PyConES 2024 en Discord! 🎉🐍",
+        title="¡Bienvenido a la PyConES 2025 en Discord! 🎉🐍",
         description=body,
         color=orange,
     )
