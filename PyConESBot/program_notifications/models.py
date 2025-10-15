@@ -85,7 +85,9 @@ class Session(BaseModel):
     url: str
     abstract: str
     start: datetime = Field(alias="date")
-    level: Annotated[Optional[str], BeforeValidator(level_validator)] = Field(alias="answers", default=None)
+    level: Annotated[Optional[str], BeforeValidator(level_validator)] = Field(
+        alias="answers", default=None
+    )
     duration: Annotated[int, BeforeValidator(parse_duration)]
 
     def __hash__(self) -> int:
