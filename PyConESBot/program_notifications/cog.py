@@ -115,11 +115,10 @@ class ProgramNotificationsCog(commands.Cog):
                 session.room, session.start.date()
             )
 
-            # Set the channel topic
-            await self.set_room_topic(
-                session.room,
-                f"Livestream: [YouTube]({livestream_url})" if livestream_url else "",
-            )
+            # Set the channel topic, but only if there is a livestream: otherwise keep the
+            # topic of the channel as it is instead of wiping it
+            if livestream_url:
+                await self.set_room_topic(session.room, f"Livestream: [YouTube]({livestream_url})")
 
             embed = session_to_embed.create_session_embed(session, livestream_url)
 
