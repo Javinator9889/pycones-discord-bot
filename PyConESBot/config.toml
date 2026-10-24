@@ -121,3 +121,29 @@ channel_id = "1563596803327262791"
 [program_notifications.rooms."aula_4.1"]
 name = "Aula 4.1"
 channel_id = "1563596803327262791"
+
+# The bot asks Pretalx for English (Accept-Language), which translates the names of these rooms
+# ("Aula 0.1" -> "Room 0.1", "Aula IA" -> "Room IA"): map the English names to the same channels
+[program_notifications.rooms."room_0.1"]
+name = "Room 0.1"
+channel_id = "1563596803327262791"
+
+[program_notifications.rooms."room_1.1"]
+name = "Room 1.1"
+channel_id = "1563596803327262791"
+
+[program_notifications.rooms."room_2.1"]
+name = "Room 2.1"
+channel_id = "1563596803327262791"
+
+[program_notifications.rooms."room_3.1"]
+name = "Room 3.1"
+channel_id = "1563596803327262791"
+
+[program_notifications.rooms."room_4.1"]
+name = "Room 4.1"
+channel_id = "1563596803327262791"
+
+[program_notifications.rooms.room_ia]
+name = "Room IA"
+channel_id = "1563588652221731029"
