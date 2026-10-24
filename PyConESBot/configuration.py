@@ -53,6 +53,10 @@ class Config(metaclass=Singleton):
 
             # Program Notifications
             self.PROGRAM_API_URL: str = config["program_notifications"]["api_url"]
+            # optional: the schedule export has no answers (e.g. the level of the sessions)
+            self.SUBMISSIONS_API_URL: str | None = config["program_notifications"].get(
+                "submissions_api_url"
+            )
             self.TIMEZONE_OFFSET: int = config["program_notifications"]["timezone_offset"]
             self.SCHEDULE_CACHE_FILE = Path(config["program_notifications"]["schedule_cache_file"])
             self.LIVESTREAM_URL_FILE = Path(config["program_notifications"]["livestream_url_file"])

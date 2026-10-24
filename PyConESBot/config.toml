@@ -58,6 +58,8 @@ LOG_LEVEL = "INFO"
 # UTC offset in hours (e.g. 2 for CEST, 1 for CET). PyConES 2026 is on 6-8 November (CET)
 timezone_offset = 1
 api_url = "https://pretalx.com/pycones-2026/schedule/export/schedule.json"
+# public endpoint used to get the level of the sessions (the schedule export has no answers)
+submissions_api_url = "https://pretalx.com/api/events/pycones-2026/submissions/"
 schedule_cache_file = "schedule.json"
 livestream_url_file = "livestreams.toml"
 

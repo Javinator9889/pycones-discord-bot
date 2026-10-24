@@ -21,8 +21,12 @@ class ProgramConnector:
         simulated_start_time: datetime | None = None,
         fast_mode: bool = False,
         token: str | None = None,
+        submissions_api_url: str | None = None,
     ) -> None:
         self._api_url = api_url
+        self._submissions_api_url = submissions_api_url
+        # answers to the questions of the submissions (e.g. the level) by submission code
+        self._answers_by_code: dict[str, list[dict]] = {}
         self._timezone = timezone(timedelta(hours=timezone_offset))
         self._cache_file = cache_file
         self._http_headers = {
@@ -88,6 +92,8 @@ class ProgramConnector:
 
             _logger.info("Schedule fetched successfully.")
 
+            await self._add_session_answers(schedule)
+
             # write schedule to file in case the API goes down
             _logger.info(f"Writing schedule to {self._cache_file}...")
             Path(self._cache_file).parent.mkdir(exist_ok=True, parents=True)
@@ -97,6 +103,64 @@ class ProgramConnector:
 
             self.sessions_by_day = await self.parse_schedule(schedule)
             _logger.info("Schedule parsed and loaded.")
+
+    async def _add_session_answers(self, schedule: dict) -> None:
+        """
+        Add the answers to the submission questions (e.g. the level) to the sessions.
+
+        The schedule export never includes the answers, so they are fetched from the
+        submissions endpoint of the Pretalx API instead. If that fails, the answers that
+        were fetched last are used, so a hiccup does not turn every level into "NA".
+        """
+        if not self._submissions_api_url:
+            return
+
+        try:
+            self._answers_by_code = await self._fetch_answers_by_code()
+        except (aiohttp.ClientError, asyncio.TimeoutError, KeyError, TypeError, ValueError) as e:
+            _logger.warning(
+                f"Error fetching the session answers: {e!r}. Using the last known ones."
+            )
+
+        for day in schedule["schedule"]["conference"]["days"]:
+            for sessions in day["rooms"].values():
+                for session in sessions:
+                    session["answers"] = self._answers_by_code.get(session.get("code"), [])
+
+    async def _fetch_answers_by_code(self) -> dict[str, list[dict]]:
+        """
+        Fetch the answers of all the submissions, grouped by submission code.
+
+        Each answer has the shape the `Session` model expects: the question ID and the
+        (localized) texts of the selected options.
+        """
+        # The endpoint is public. The request is sent without the API token on purpose: the
+        # token has no permission on this endpoint and would make Pretalx reject the request.
+        headers = {k: v for k, v in self._http_headers.items() if k != "Authorization"}
+        params: dict[str, str] | None = {"expand": "answers,answers.options", "limit": "100"}
+        timeout = aiohttp.ClientTimeout(total=30)
+
+        answers_by_code: dict[str, list[dict]] = {}
+        url: str | None = self._submissions_api_url
+        async with aiohttp.ClientSession(headers=headers, timeout=timeout) as http_session:
+            while url:
+                async with http_session.get(url, params=params) as response:
+                    response.raise_for_status()
+                    page = await response.json()
+
+                params = None  # the URL of the next page already includes the query
+                for submission in page["results"]:
+                    answers_by_code[submission["code"]] = [
+                        {
+                            "question": answer["question"],
+                            "answer": answer["answer"],
+                            "options": [option["answer"] for option in answer["options"]],
+                        }
+                        for answer in submission["answers"]
+                    ]
+                url = page.get("next")
+
+        return answers_by_code
 
     async def _get_schedule_from_cache(self) -> dict[date, list[Session]]:
         """

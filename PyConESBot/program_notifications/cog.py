@@ -19,6 +19,7 @@ class ProgramNotificationsCog(commands.Cog):
         self.bot: Client = bot
         self.program_connector = ProgramConnector(
             api_url=config.PROGRAM_API_URL,
+            submissions_api_url=config.SUBMISSIONS_API_URL,
             timezone_offset=config.TIMEZONE_OFFSET,
             cache_file=config.SCHEDULE_CACHE_FILE,
             simulated_start_time=config.SIMULATED_START_TIME,

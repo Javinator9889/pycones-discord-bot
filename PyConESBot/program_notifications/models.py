@@ -5,9 +5,11 @@ from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field
 
-_QUESTION_LEVEL_ID = 3662
+# ID of the "Proposal level" question of the PyConES 2026 Pretalx event
+_QUESTION_LEVEL_ID = 6818
 _QUESTION_PUBLIC_PROFILE = 3656
 _ID_OPENING_TALK = 55677
+_LEVELS = ("basic", "intermediate", "advanced")
 
 
 def level_validator(answers: list[dict[str, Any]]) -> str:
@@ -20,11 +22,13 @@ def level_validator(answers: list[dict[str, Any]]) -> str:
         :obj:`str`: The level of the session or "NA" if not found
     """
     for answer in answers:
-        if answer["question"] == _QUESTION_LEVEL_ID:
+        if answer["question"] == _QUESTION_LEVEL_ID and answer.get("options"):
             # The answer is a string with the level and a brief description. We only want the level
             # which is the first word in the string. We also convert it to lowercase. We pick the
             # string from the ["options"][0]["en"]
-            return answer["options"][0]["en"].split(" ")[0].lower()
+            level = answer["options"][0]["en"].split(" ")[0].lower()
+            # anything else (e.g. a renamed option) must not break the embeds
+            return level if level in _LEVELS else "NA"
     return "NA"
 
 
