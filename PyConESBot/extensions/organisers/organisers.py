@@ -36,7 +36,8 @@ class Organisers(commands.Cog):
         embed.add_field(name="Volunteers", value=counts.volunteers, inline=False)
         embed.add_field(name="Onsite Volunteers", value=counts.volunteers_onsite, inline=False)
         embed.add_field(name="Remote Volunteers", value=counts.volunteers_remote, inline=False)
-        embed.add_field(name="Organisers", value=counts.organisers, inline=False)
+        embed.add_field(name="Supporters", value=counts.supporter, inline=False)
+        embed.add_field(name="Organisers", value=counts.organizers, inline=False)
         await ctx.send(embed=embed)
 
     def _get_counts(self, guild: discord.Guild) -> "_RoleCount":
@@ -49,14 +50,15 @@ class Organisers(commands.Cog):
             everyone=guild.member_count,
             not_registered=sum(len(m.roles) == 1 for m in guild.members),
             **{
-                role: len(guild.get_role(role_id).members)
+                # roles that are not configured (ID 0) or not in the guild count as empty
+                role: len(discord_role.members) if (discord_role := guild.get_role(role_id)) else 0
                 for role, role_id in attrs.asdict(self._roles).items()
             },
         )
 
     async def cog_check(self, ctx: commands.Context) -> bool:
         """Check if the message author has the organisers role."""
-        return any(role.id == self._roles.organisers for role in ctx.author.roles)
+        return any(role.id == self._roles.organizers for role in ctx.author.roles)
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         """Handle a command error raised in this class."""
@@ -83,7 +85,8 @@ class _RoleCount:
 
     everyone: int
     not_registered: int
-    organisers: int
+    organizers: int
+    supporter: int
     volunteers: int
     volunteers_onsite: int
     sponsors: int
