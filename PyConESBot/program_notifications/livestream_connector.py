@@ -33,7 +33,8 @@ class LivestreamConnector:
 
         livestreams_by_room: dict[str, dict[date, str]] = {}
 
-        for room_details in livestreams_raw["rooms"].values():
+        # an empty file (no livestreams yet) is valid: it must not break the notifications
+        for room_details in livestreams_raw.get("rooms", {}).values():
             room_name = room_details.pop("name")
             livestreams_by_room[room_name] = {
                 date.fromisoformat(livestream_date): livestream_url
