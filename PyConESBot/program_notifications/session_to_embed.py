@@ -20,6 +20,9 @@ class LevelColors(Enum):
     NA = 0x808080
 
 
+_LEVEL_NAMES = {"basic": "Básico", "intermediate": "Intermedio", "advanced": "Avanzado"}
+
+
 def create_session_embed(session: Session, livestream_url: str | None) -> Embed:
     """Create a Discord embed for a conference session.
 
@@ -30,13 +33,15 @@ def create_session_embed(session: Session, livestream_url: str | None) -> Embed:
         title=_format_title(session.title),
         description=_create_description(session),
         url=session.url,
-        color=LevelColors.NA.value,
+        color=_get_color(session.level),
     )
 
     embed.add_field(name="Inicio", value=_format_start_time(session.start), inline=True)
     embed.add_field(name="Sala", value=_format_room(session.room), inline=True)
     embed.add_field(name="Track", value=_format_track(session.track), inline=True)
     embed.add_field(name="Duración", value=_format_duration(session.duration), inline=True)
+    if session.level in _LEVEL_NAMES:  # unknown levels ("NA") are not shown
+        embed.add_field(name="Nivel", value=_LEVEL_NAMES[session.level], inline=True)
 
     author = _create_author_from_speakers(session.persons)
     if author:
@@ -144,10 +149,10 @@ def _format_live_stream(livestream_url: str) -> str:
     return f"[YouTube]({livestream_url})" if livestream_url else _FIELD_VALUE_EMPTY
 
 
-def _get_color(level: str) -> int:
+def _get_color(level: str | None) -> int:
     """Get the color for the embed based on the audience level.
 
-    :param level: The expected audience level
+    :param level: The expected audience level, or None/"NA" if it is not known
     :return: A color (int)
     """
-    return LevelColors[level.upper()].value
+    return LevelColors[(level or "NA").upper()].value

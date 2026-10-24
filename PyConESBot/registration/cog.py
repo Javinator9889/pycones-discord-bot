@@ -28,7 +28,7 @@ class RegistrationButton(discord.ui.Button["Registration"]):
         await interaction.response.send_modal(RegistrationForm(parent_cog=self.parent_cog))
 
 
-class RegistrationForm(discord.ui.Modal, title="PyConES 2025 Registration"):
+class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
     def __init__(self, parent_cog: RegistrationCog):
         super().__init__()
         self.parent_cog = parent_cog
@@ -102,7 +102,9 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2025 Registration"):
         _logger.info(f"Registration successful: {order=}, {name=}")
 
     async def on_error(self, interaction: Interaction, error: Exception) -> None:
-        user_is_admin = any(role.name == "Administrators" for role in interaction.user.roles)
+        # The bot cannot edit administrators (their top role is above the bot's), whatever
+        # the role is called in the current server
+        user_is_admin = any(role.permissions.administrator for role in interaction.user.roles)
         if isinstance(error, Forbidden) and user_is_admin:
             _logger.exception("An error occurred (user is admin)")
             await self.log_error_to_user(
@@ -179,7 +181,7 @@ class RegistrationCog(commands.Cog):
         welcome_message = create_welcome_message(
             textwrap.dedent(
                 f"""
-                Sigue estos pasos para registrarte en el servidor de la PyConES 2025:
+                Sigue estos pasos para registrarte en el servidor de la PyConES 2026:
 
                 1️⃣ Haz clic en el botón que dice "Regístrate aquí 👈", justo debajo.
 
@@ -197,7 +199,7 @@ class RegistrationCog(commands.Cog):
                 * El canal <#{config.REG_HELP_CHANNEL_ID}>
                 * Hablando con algún voluntario que esté en el evento
 
-                ¡Disfruta el servidor de la comunidad PyConES 2025! 🐍💻🎉
+                ¡Disfruta el servidor de la comunidad PyConES 2026! 🐍💻🎉
                 """
             )
         )
@@ -237,7 +239,7 @@ class RegistrationCog(commands.Cog):
 def create_welcome_message(body: str) -> discord.Embed:
     orange = 0xFF8331
     return discord.Embed(
-        title="¡Bienvenido a la PyConES 2025 en Discord! 🎉🐍",
+        title="¡Bienvenido a la PyConES 2026 en Discord! 🎉🐍",
         description=body,
         color=orange,
     )

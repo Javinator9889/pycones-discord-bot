@@ -19,6 +19,7 @@ class ProgramNotificationsCog(commands.Cog):
         self.bot: Client = bot
         self.program_connector = ProgramConnector(
             api_url=config.PROGRAM_API_URL,
+            submissions_api_url=config.SUBMISSIONS_API_URL,
             timezone_offset=config.TIMEZONE_OFFSET,
             cache_file=config.SCHEDULE_CACHE_FILE,
             simulated_start_time=config.SIMULATED_START_TIME,
@@ -115,11 +116,10 @@ class ProgramNotificationsCog(commands.Cog):
                 session.room, session.start.date()
             )
 
-            # Set the channel topic
-            await self.set_room_topic(
-                session.room,
-                f"Livestream: [YouTube]({livestream_url})" if livestream_url else "",
-            )
+            # Set the channel topic, but only if there is a livestream: otherwise keep the
+            # topic of the channel as it is instead of wiping it
+            if livestream_url:
+                await self.set_room_topic(session.room, f"Livestream: [YouTube]({livestream_url})")
 
             embed = session_to_embed.create_session_embed(session, livestream_url)
 

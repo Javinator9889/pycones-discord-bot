@@ -112,7 +112,10 @@ class PretixConnector:
                     variation=variation_name,
                 )
                 if order.is_paid:
-                    self.tickets_by_key[ticket.key].append(ticket)
+                    # orders are fetched again after a restart (the cache is already loaded) and
+                    # whenever they are modified: do not store the same ticket twice
+                    if ticket not in self.tickets_by_key[ticket.key]:
+                        self.tickets_by_key[ticket.key].append(ticket)
                 elif ticket.key in self.tickets_by_key:  # remove cancelled tickets
                     self.tickets_by_key.pop(ticket.key)
 

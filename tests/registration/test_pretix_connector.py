@@ -147,6 +147,24 @@ async def test_cache(pretix_mock, tmp_path):
     assert pretix_connector_1.tickets_by_key == pretix_connector_2.tickets_by_key
 
 
+async def test_fetching_after_loading_the_cache_does_not_duplicate_tickets(pretix_mock, tmp_path):
+    cache_file = tmp_path / "pretix_cache.json"
+    connector_1 = PretixConnector(
+        url=pretix_mock.base_url, token=PRETIX_API_TOKEN, cache_file=cache_file
+    )
+    await connector_1.fetch_pretix_data()
+    expected = {key: list(tickets) for key, tickets in connector_1.tickets_by_key.items()}
+
+    # a restarted bot loads the cache, then fetches all orders again
+    for _ in range(3):
+        connector_2 = PretixConnector(
+            url=pretix_mock.base_url, token=PRETIX_API_TOKEN, cache_file=cache_file
+        )
+        await connector_2.fetch_pretix_data()
+
+    assert connector_2.tickets_by_key == expected
+
+
 async def test_get_ticket_handles_ticket_ids(pretix_mock):
     pretix_connector = PretixConnector(url=pretix_mock.base_url, token=PRETIX_API_TOKEN)
 
