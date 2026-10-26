@@ -21,7 +21,7 @@ class RegistrationButton(discord.ui.Button["Registration"]):
     def __init__(self, parent_cog: RegistrationCog):
         super().__init__()
         self.parent_cog = parent_cog
-        self.label = "Regístrate aquí 👈"
+        self.label = "Register here 👈"
         self.style = discord.ButtonStyle.green
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -34,20 +34,20 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
         self.parent_cog = parent_cog
 
     order_field = discord.ui.TextInput(
-        label="ID del ticket (como aparece en tu credencial)",
+        label="Ticket ID (as shown on your badge)",
         required=True,
         min_length=5,
         max_length=9,
-        placeholder="Algo como '#XXXXX-X' o 'XXXXX'",
+        placeholder="Something like '#XXXXX-X' or 'XXXXX'",
     )
 
     name_field = discord.ui.TextInput(
-        label="Nombre (como aparece en tu credencial)",
+        label="Name (as shown on your badge)",
         required=True,
         min_length=1,
         max_length=50,
         style=discord.TextStyle.short,
-        placeholder="Algo como 'Jane Doe'",
+        placeholder="Something like 'Jane Doe'",
     )
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
@@ -61,15 +61,14 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
         if not tickets:
             await self.log_error_to_user(
                 interaction,
-                "No podemos encontrar tu ticket. "
-                "Por favor, verifica que el ID y el nombre sean correctos.",
+                "We cannot find your ticket. " "Please check that the ID and the name are correct.",
             )
             await self.log_error_to_channel(interaction, f"No ticket found: {order=}, {name=}")
             _logger.info(f"No ticket found: {order=}, {name=}")
             return
 
         if any(self.parent_cog.registration_logger.is_registered(ticket) for ticket in tickets):
-            await self.log_error_to_user(interaction, "Ya te has registrado.")
+            await self.log_error_to_user(interaction, "You are already registered.")
             await self.log_error_to_channel(interaction, f"Already registered: {order=}, {name=}")
             _logger.info(f"Already registered: {tickets}")
             return
@@ -82,7 +81,7 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
                 role_ids.update(config.VARIATION_TO_ROLES[ticket.variation])
 
         if not role_ids:
-            await self.log_error_to_user(interaction, "No se ha encontrado el ticket.")
+            await self.log_error_to_user(interaction, "No valid ticket was found.")
             await self.log_error_to_channel(interaction, f"Tickets without roles: {tickets}")
             _logger.info(f"Tickets without role assignments: {tickets}")
             return
@@ -108,7 +107,7 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
         if isinstance(error, Forbidden) and user_is_admin:
             _logger.exception("An error occurred (user is admin)")
             await self.log_error_to_user(
-                interaction, "Los administradores no se pueden registrar usando el bot."
+                interaction, "Administrators cannot register using the bot."
             )
             await self.log_error_to_channel(
                 interaction,
@@ -117,16 +116,16 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
 
         else:
             _logger.exception("An error occurred!")
-            await self.log_error_to_user(interaction, "Algo ha ido mal...")
+            await self.log_error_to_user(interaction, "Something went wrong...")
             await self.log_error_to_channel(interaction, f"{error.__class__.__name__}: {error}")
 
     @staticmethod
     async def log_registration_to_user(interaction: Interaction, *, name: str) -> None:
         await interaction.response.send_message(
-            f"¡Gracias {name}, ya estás registrado!\n\n"
-            f"Tu nombre de usuario se ha cambiado para encajar con el que aparece en el ticket. "
-            f"Este es también el nombre que aparece en tu credencial, lo que significa que "
-            f"tu nombre de usuario es tu 'credencial de acceso virtual'.",
+            f"Thank you {name}, you are now registered!\n\n"
+            f"Your server nickname was changed to the name on your ticket. "
+            f"This is also the name on your conference badge, which means that "
+            f"your nickname can be your 'virtual conference badge'.",
             ephemeral=True,
             delete_after=None,
         )
@@ -145,7 +144,7 @@ class RegistrationForm(discord.ui.Modal, title="PyConES 2026 Registration"):
     @staticmethod
     async def log_error_to_user(interaction: Interaction, message: str) -> None:
         await interaction.response.send_message(
-            f"{message} Si necesitas ayuda, escríbenos en <#{config.REG_HELP_CHANNEL_ID}>.",
+            f"{message} If you need help, write to us in <#{config.REG_HELP_CHANNEL_ID}>.",
             ephemeral=True,
             delete_after=None,
         )
@@ -181,25 +180,25 @@ class RegistrationCog(commands.Cog):
         welcome_message = create_welcome_message(
             textwrap.dedent(
                 f"""
-                Sigue estos pasos para registrarte en el servidor de la PyConES 2026:
+                Follow these steps to register on the PyConES 2026 server:
 
-                1️⃣ Haz clic en el botón que dice "Regístrate aquí 👈", justo debajo.
+                1️⃣ Click the button that says "Register here 👈", right below.
 
-                2️⃣ Rellena el formulario con el ID y el nombre que aparecen en el ticket.
-                Puedes encontrarlos:
-                * Impresos en tu ticket
-                * Impresos en tu credencial
-                * En el email "Su pedido: XXXXX" from support@pretix.eu
+                2️⃣ Fill in the form with the ID and the name that appear on your ticket.
+                You can find them:
+                * Printed on your ticket
+                * Printed on your badge
+                * In the email "Your order: XXXXX" from support@pretix.eu
 
-                3️⃣ Click "Enviar".
+                3️⃣ Click "Submit".
 
-                Estos pasos actualizarán tus permisos en el servidor y tu nombre de usuario.
+                These steps will update your permissions on the server and your server nickname.
 
-                ¿Tienes algún problema? Por favor, escríbenos en:
-                * El canal <#{config.REG_HELP_CHANNEL_ID}>
-                * Hablando con algún voluntario que esté en el evento
+                Having any problem? Please reach out to us:
+                * In the channel <#{config.REG_HELP_CHANNEL_ID}>
+                * Talking to a volunteer at the event
 
-                ¡Disfruta el servidor de la comunidad PyConES 2026! 🐍💻🎉
+                Enjoy the PyConES 2026 community server! 🐍💻🎉
                 """
             )
         )
@@ -221,8 +220,8 @@ class RegistrationCog(commands.Cog):
         await reg_channel.purge()
         await reg_channel.send(
             embed=create_welcome_message(
-                "El bot de registro está ahora mismo offline. "
-                "Pedimos disculpas por el inconveniente. Esperamos que esté disponible pronto."
+                "The registration bot is currently offline. "
+                "We apologise for the inconvenience and hope it will be available again soon."
             )
         )
 
@@ -239,7 +238,7 @@ class RegistrationCog(commands.Cog):
 def create_welcome_message(body: str) -> discord.Embed:
     orange = 0xFF8331
     return discord.Embed(
-        title="¡Bienvenido a la PyConES 2026 en Discord! 🎉🐍",
+        title="Welcome to PyConES 2026 on Discord! 🎉🐍",
         description=body,
         color=orange,
     )
